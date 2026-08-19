@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>VLESS 智能节点提取和裂变器</title>
+  <title>VLESS & Trojan 智能节点提取和裂变器</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; }
     .container { max-width: 780px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
@@ -54,10 +54,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>🚀 VLESS 智能节点提取和裂变器</h1>
+    <h1>🚀 VLESS / Trojan 智能节点提取和裂变器</h1>
 
-    <h2>第一步：粘贴你的原始 VLESS 节点链接</h2>
-    <textarea id="vlessInput" placeholder="粘贴完整 vless:// 链接" onpaste="resetScroll(this)"></textarea>
+    <h2>第一步：粘贴你的原始 VLESS 或 Trojan 节点链接</h2>
+    <textarea id="vlessInput" placeholder="粘贴完整 vless:// 或 trojan:// 链接" onpaste="resetScroll(this)"></textarea>
     
     <h2>第二步：粘贴 Cloudflare 优选 IP 或域名</h2>
     <textarea id="cfInput" placeholder="多行格式：域名(IP):端口#名称" onpaste="resetScroll(this)"></textarea>
@@ -83,13 +83,12 @@
 
     // 提取域名/IP:端口#名称 (支持 URL 编码解码)
     function extract() {
-      // 修正：从第一步（vlessInput）获取输入的 VLESS 节点进行提取
       const text = document.getElementById("vlessInput").value.trim();
       const lines = text.split("\n").map(x => x.trim()).filter(x => x);
       let result = [];
 
       lines.forEach(line => {
-        if (!line.startsWith("vless://")) return;
+        if (!line.startsWith("vless://") && !line.startsWith("trojan://")) return;
         try {
           const url = new URL(line);
           const host = url.hostname;
@@ -113,7 +112,7 @@
       outputEl.scrollLeft = 0;
     }
 
-    // 生成优选节点
+    // 生成优选节点 (支持 VLESS 与 Trojan)
     function generate() {
       const rawText = document.getElementById("vlessInput").value.trim();
       const cf = document.getElementById("cfInput").value.trim();
@@ -128,14 +127,18 @@
       // 2. 如果第一步有多个节点，仅取第一条节点作为模板
       const raw = rawText.split("\n")[0].trim();
 
-      if (!raw.startsWith("vless://")) {
-        outputEl.value = "原始节点格式错误";
+      const isVless = raw.startsWith("vless://");
+      const isTrojan = raw.startsWith("trojan://");
+
+      if (!isVless && !isTrojan) {
+        outputEl.value = "原始节点格式错误，仅支持 vless:// 或 trojan:// 协议";
         return;
       }
 
       try {
+        const protocol = isVless ? "vless://" : "trojan://";
         const base = new URL(raw);
-        const uuid = base.username;
+        const auth = base.username; // UUID 或 Trojan Password
         const params = base.search;
         const nameBase = raw.split("#")[1] || "";
 
@@ -150,7 +153,7 @@
           const host = hp[0];
           const port = hp[1] || base.port || "443";
 
-          result.push(`vless://${uuid}@${host}:${port}${params}#${name}`);
+          result.push(`${protocol}${auth}@${host}:${port}${params}#${name}`);
         });
 
         outputEl.value = result.join("\n");
