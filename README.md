@@ -30,8 +30,8 @@ vless://uuid@cf.example.org:2053?encryption=none&security=tls&type=ws&host=examp
 ### 2. 提取优选信息
 
 **输入：**
-vless://uuid@1.1.1.1:8443?encryption=none&security=tls&type=ws#香港01
-vless://uuid@cf.example.org:2053?encryption=none&security=tls&type=ws#美西02
+ ·vless://uuid@1.1.1.1:8443?encryption=none&security=tls&type=ws#香港01`
+ `vless://uuid@cf.example.org:2053?encryption=none&security=tls&type=ws#美西02`
 **输出：**
 1.1.1.1:8443#香港01
 cf.example.org:2053#美西02
