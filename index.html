@@ -83,7 +83,8 @@
 
     // 提取域名/IP:端口#名称 (支持 URL 编码解码)
     function extract() {
-      const text = document.getElementById("cfInput").value.trim();
+      // 修正：从第一步（vlessInput）获取输入的 VLESS 节点进行提取
+      const text = document.getElementById("vlessInput").value.trim();
       const lines = text.split("\n").map(x => x.trim()).filter(x => x);
       let result = [];
 
@@ -114,9 +115,18 @@
 
     // 生成优选节点
     function generate() {
-      const raw = document.getElementById("vlessInput").value.trim();
+      const rawText = document.getElementById("vlessInput").value.trim();
       const cf = document.getElementById("cfInput").value.trim();
       const outputEl = document.getElementById("output");
+
+      // 1. 第二步为空时弹窗提醒
+      if (!cf) {
+        alert("请在第二步中粘贴 Cloudflare 优选 IP 或域名！");
+        return;
+      }
+
+      // 2. 如果第一步有多个节点，仅取第一条节点作为模板
+      const raw = rawText.split("\n")[0].trim();
 
       if (!raw.startsWith("vless://")) {
         outputEl.value = "原始节点格式错误";
