@@ -18,6 +18,7 @@
 
 **输入：**
 * **基础 VLESS 节点** (1条)：
+
   `vless://uuid@example.com:443?encryption=none&security=tls&type=ws&host=example.com&path=%2F#原始节点`
 * **优选域名列表** (多条)：
   ```text
@@ -25,8 +26,10 @@
   cf.example.org:2053#美西02
 
 ### 2. 提取优选信息
+
 * **基础 VLESS 节点** (多条)：
 **输入：**
+  
   `vless://uuid@1.1.1.1:8443?encryption=none&security=tls&type=ws#香港01`
   
   `vless://uuid@cf.example.org:2053?encryption=none&security=tls&type=ws#美西02`
