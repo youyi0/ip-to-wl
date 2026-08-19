@@ -20,7 +20,7 @@
       box-sizing: border-box;
     }
     button {
-      width: 48%;
+      flex: 1;                /* 按钮自动平分宽度 */
       padding: 14px;
       background: #4a8cf7;
       color: #fff;
@@ -28,9 +28,10 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
-      margin-top: 15px;
     }
     button:hover { background: #3a7be0; }
+    .btn-copy { background: #28a745; }
+    .btn-copy:hover { background: #218838; }
     .output {
       margin-top: 20px;
       padding: 15px;
@@ -42,7 +43,12 @@
       height: 200px;
       box-sizing: border-box;
     }
-    .btn-row { display: flex; justify-content: space-between; }
+    .btn-row { 
+      display: flex; 
+      justify-content: space-between; 
+      gap: 12px;              /* 按钮之间的间距 */
+      margin-top: 15px;
+    }
   </style>
 </head>
 <body>
@@ -59,6 +65,7 @@
     <div class="btn-row">
       <button onclick="extract()">提取 IP+端口</button>
       <button onclick="generate()">生成优选节点</button>
+      <button class="btn-copy" onclick="copyOutput()">复制结果</button>
     </div>
   </div>
 
@@ -126,6 +133,20 @@
       } catch (e) {
         document.getElementById("output").value = "解析失败，请检查节点格式";
       }
+    }
+
+    // 复制结果全部文本
+    function copyOutput() {
+      const outputText = document.getElementById("output").value;
+      if (!outputText) {
+        alert("结果框为空，无法复制！");
+        return;
+      }
+      navigator.clipboard.writeText(outputText).then(() => {
+        alert("已成功复制到剪贴板！");
+      }).catch(err => {
+        alert("复制失败，请手动选择复制");
+      });
     }
   </script>
 </body>
