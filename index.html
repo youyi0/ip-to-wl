@@ -2,11 +2,12 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>VLESS 节点与优选域名工具</title>
+  <title>VLESS 智能节点提取和裂变器</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; }
     .container { max-width: 780px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
-    h2 { margin-top: 0; }
+    h1 { text-align: center; color: #333; margin-bottom: 25px; font-size: 22px; }
+    h2 { font-size: 16px; margin-top: 15px; color: #444; }
     textarea {
       width: 100%;
       height: 140px;
@@ -33,31 +34,33 @@
     .btn-copy { background: #28a745; }
     .btn-copy:hover { background: #218838; }
     .output {
-      margin-top: 20px;
+      margin-top: 10px;
       padding: 15px;
       background: #eef3ff;
       border-radius: 8px;
       font-size: 14px;
-      white-space: pre;       /* 不自动换行 */
-      overflow: auto;         /* 开启横向+纵向滚动条 */
+      white-space: pre;
+      overflow: auto;
       height: 200px;
       box-sizing: border-box;
     }
     .btn-row { 
       display: flex; 
       justify-content: space-between; 
-      gap: 12px;              /* 按钮之间的间距 */
+      gap: 12px; 
       margin-top: 15px;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <h1>🚀 VLESS 智能节点提取和裂变器</h1>
+
     <h2>第一步：粘贴你的原始 VLESS 节点链接</h2>
-    <textarea id="vlessInput" placeholder="粘贴完整 vless:// 链接"></textarea>
+    <textarea id="vlessInput" placeholder="粘贴完整 vless:// 链接" onpaste="resetScroll(this)"></textarea>
     
     <h2>第二步：粘贴 Cloudflare 优选 IP 或域名</h2>
-    <textarea id="cfInput" placeholder="多行格式：域名(IP):端口#名称"></textarea>
+    <textarea id="cfInput" placeholder="多行格式：域名(IP):端口#名称" onpaste="resetScroll(this)"></textarea>
     
     <h2>结果</h2>
     <textarea id="output" class="output" readonly></textarea>
@@ -70,6 +73,14 @@
   </div>
 
   <script>
+    // 粘贴时自动重置滚动条置顶靠左
+    function resetScroll(el) {
+      setTimeout(() => {
+        el.scrollTop = 0;
+        el.scrollLeft = 0;
+      }, 10);
+    }
+
     // 提取域名/IP:端口#名称 (支持 URL 编码解码)
     function extract() {
       const text = document.getElementById("cfInput").value.trim();
@@ -83,29 +94,32 @@
           const host = url.hostname;
           const port = url.port || "443";
           
-          // 获取名称并尝试解码
           let rawName = line.split("#")[1] || "";
           let name = rawName;
           try {
             name = decodeURIComponent(rawName);
           } catch (e) {
-            name = rawName; // 解码失败时保留原样
+            name = rawName;
           }
 
           result.push(`${host}:${port}#${name}`);
         } catch(e) {}
       });
 
-      document.getElementById("output").value = result.join("\n");
+      const outputEl = document.getElementById("output");
+      outputEl.value = result.join("\n");
+      outputEl.scrollTop = 0;
+      outputEl.scrollLeft = 0;
     }
 
     // 生成优选节点
     function generate() {
       const raw = document.getElementById("vlessInput").value.trim();
       const cf = document.getElementById("cfInput").value.trim();
+      const outputEl = document.getElementById("output");
 
       if (!raw.startsWith("vless://")) {
-        document.getElementById("output").value = "原始节点格式错误";
+        outputEl.value = "原始节点格式错误";
         return;
       }
 
@@ -129,9 +143,11 @@
           result.push(`vless://${uuid}@${host}:${port}${params}#${name}`);
         });
 
-        document.getElementById("output").value = result.join("\n");
+        outputEl.value = result.join("\n");
+        outputEl.scrollTop = 0;
+        outputEl.scrollLeft = 0;
       } catch (e) {
-        document.getElementById("output").value = "解析失败，请检查节点格式";
+        outputEl.value = "解析失败，请检查节点格式";
       }
     }
 
