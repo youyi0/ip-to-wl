@@ -1,137 +1,132 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<title>VLESS 节点与优选域名工具</title>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fa;
-    padding: 20px;
-}
-.container {
-    max-width: 780px;
-    margin: auto;
-    background: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
-}
-h2 { margin-top: 0; }
-textarea {
-    width: 100%;
-    height: 140px;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    resize: vertical;
-    font-size: 14px;
-    overflow-y: scroll;
-}
-button {
-    width: 48%;
-    padding: 14px;
-    background: #4a8cf7;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 15px;
-}
-button:hover { background: #3a7be0; }
-.output {
-    margin-top: 20px;
-    padding: 15px;
-    background: #eef3ff;
-    border-radius: 8px;
-    font-size: 14px;
-    word-break: break-all;
-    overflow-y: scroll;
-    height: 200px;
-}
-.btn-row {
-    display: flex;
-    justify-content: space-between;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>VLESS 节点与优选域名工具</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; }
+    .container { max-width: 780px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; }
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      font-size: 14px;
+      white-space: pre;       /* 不自动换行 */
+      overflow: auto;         /* 开启横向+纵向滚动条 */
+      box-sizing: border-box;
+    }
+    button {
+      width: 48%;
+      padding: 14px;
+      background: #4a8cf7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover { background: #3a7be0; }
+    .output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #eef3ff;
+      border-radius: 8px;
+      font-size: 14px;
+      white-space: pre;       /* 不自动换行 */
+      overflow: auto;         /* 开启横向+纵向滚动条 */
+      height: 200px;
+      box-sizing: border-box;
+    }
+    .btn-row { display: flex; justify-content: space-between; }
+  </style>
 </head>
 <body>
-<div class="container">
-
+  <div class="container">
     <h2>第一步：粘贴你的原始 VLESS 节点链接</h2>
     <textarea id="vlessInput" placeholder="粘贴完整 vless:// 链接"></textarea>
-
+    
     <h2>第二步：粘贴 Cloudflare 优选 IP 或域名</h2>
     <textarea id="cfInput" placeholder="多行格式：域名(IP):端口#名称"></textarea>
-
+    
     <h2>结果</h2>
     <textarea id="output" class="output" readonly></textarea>
-
+    
     <div class="btn-row">
-        <button onclick="extract()">提取 IP+端口</button>
-        <button onclick="generate()">生成优选节点</button>
+      <button onclick="extract()">提取 IP+端口</button>
+      <button onclick="generate()">生成优选节点</button>
     </div>
+  </div>
 
-</div>
+  <script>
+    // 提取域名/IP:端口#名称 (支持 URL 编码解码)
+    function extract() {
+      const text = document.getElementById("cfInput").value.trim();
+      const lines = text.split("\n").map(x => x.trim()).filter(x => x);
+      let result = [];
 
-<script>
-// 提取域名/IP:端口#名称
-function extract() {
-    const text = document.getElementById("cfInput").value.trim();
-    const lines = text.split("\n").map(x => x.trim()).filter(x => x);
-
-    let result = [];
-
-    lines.forEach(line => {
+      lines.forEach(line => {
         if (!line.startsWith("vless://")) return;
-
         try {
-            const url = new URL(line);
-            const host = url.hostname;
-            const port = url.port || "443";
-            const name = line.split("#")[1] || "";
-            result.push(`${host}:${port}#${name}`);
+          const url = new URL(line);
+          const host = url.hostname;
+          const port = url.port || "443";
+          
+          // 获取名称并尝试解码
+          let rawName = line.split("#")[1] || "";
+          let name = rawName;
+          try {
+            name = decodeURIComponent(rawName);
+          } catch (e) {
+            name = rawName; // 解码失败时保留原样
+          }
+
+          result.push(`${host}:${port}#${name}`);
         } catch(e) {}
-    });
+      });
 
-    document.getElementById("output").value = result.join("\n");
-}
-
-// 生成优选节点
-function generate() {
-    const raw = document.getElementById("vlessInput").value.trim();
-    const cf = document.getElementById("cfInput").value.trim();
-
-    if (!raw.startsWith("vless://")) {
-        document.getElementById("output").value = "原始节点格式错误";
-        return;
+      document.getElementById("output").value = result.join("\n");
     }
 
-    const base = new URL(raw);
-    const uuid = base.username;
-    const params = base.search;
-    const nameBase = raw.split("#")[1] || "";
+    // 生成优选节点
+    function generate() {
+      const raw = document.getElementById("vlessInput").value.trim();
+      const cf = document.getElementById("cfInput").value.trim();
 
-    const lines = cf.split("\n").map(x => x.trim()).filter(x => x);
+      if (!raw.startsWith("vless://")) {
+        document.getElementById("output").value = "原始节点格式错误";
+        return;
+      }
 
-    let result = [];
+      try {
+        const base = new URL(raw);
+        const uuid = base.username;
+        const params = base.search;
+        const nameBase = raw.split("#")[1] || "";
 
-    lines.forEach(line => {
-        const parts = line.split("#");
-        const hostPort = parts[0];
-        const name = parts[1] || nameBase;
+        const lines = cf.split("\n").map(x => x.trim()).filter(x => x);
+        let result = [];
 
-        const hp = hostPort.split(":");
-        const host = hp[0];
-        const port = hp[1] || base.port || "443";
+        lines.forEach(line => {
+          const parts = line.split("#");
+          const hostPort = parts[0];
+          const name = parts[1] || nameBase;
+          const hp = hostPort.split(":");
+          const host = hp[0];
+          const port = hp[1] || base.port || "443";
 
-        result.push(`vless://${uuid}@${host}:${port}${params}#${name}`);
-    });
+          result.push(`vless://${uuid}@${host}:${port}${params}#${name}`);
+        });
 
-    document.getElementById("output").value = result.join("\n");
-}
-</script>
-
+        document.getElementById("output").value = result.join("\n");
+      } catch (e) {
+        document.getElementById("output").value = "解析失败，请检查节点格式";
+      }
+    }
+  </script>
 </body>
 </html>
