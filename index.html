@@ -60,7 +60,7 @@
     <textarea id="vlessInput" placeholder="粘贴完整 vless:// 或 trojan:// 链接" onpaste="resetScroll(this)"></textarea>
     
     <h2>第二步：粘贴 Cloudflare 优选 IP 或域名</h2>
-    <textarea id="cfInput" placeholder="多行格式：域名(IP):端口#名称" onpaste="resetScroll(this)"></textarea>
+    <textarea id="cfInput" placeholder="多行格式：域名(IP) 或 域名(IP):端口#名称" onpaste="resetScroll(this)"></textarea>
     
     <h2>结果</h2>
     <textarea id="output" class="output" readonly></textarea>
@@ -139,6 +139,7 @@
         const protocol = isVless ? "vless://" : "trojan://";
         const base = new URL(raw);
         const auth = base.username; // UUID 或 Trojan Password
+        const port = base.port || "443"; // 固定使用模板节点的端口
         const params = base.search;
         const nameBase = raw.split("#")[1] || "";
 
@@ -149,9 +150,9 @@
           const parts = line.split("#");
           const hostPort = parts[0];
           const name = parts[1] || nameBase;
-          const hp = hostPort.split(":");
-          const host = hp[0];
-          const port = hp[1] || base.port || "443";
+          
+          // 仅保留域名/IP，强制忽略输入字符串中的端口部分
+          const host = hostPort.split(":")[0];
 
           result.push(`${protocol}${auth}@${host}:${port}${params}#${name}`);
         });
