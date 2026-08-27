@@ -112,6 +112,28 @@
       outputEl.scrollLeft = 0;
     }
 
+    // 提取纯域名/IP（兼容 IPv4、IPv6 及域名，自动忽略端口）
+    function parseHostOnly(hostPortStr) {
+      let str = hostPortStr.trim();
+      
+      // 情况1：带方括号的 IPv6，如 [2606:4700::1] 或 [2606:4700::1]:8443
+      if (str.startsWith("[")) {
+        const bracketEnd = str.indexOf("]");
+        if (bracketEnd !== -1) {
+          return str.substring(0, bracketEnd + 1);
+        }
+      }
+      
+      // 情况2：不带方括号但包含多个冒号的 IPv6，如 2606:4700::1
+      const colonCount = (str.match(/:/g) || []).length;
+      if (colonCount >= 2) {
+        return `[${str}]`; // 标准节点 URL 里的 IPv6 需要带 []
+      }
+      
+      // 情况3：IPv4 或 域名，如 1.1.1.1:8080 或 example.com:443
+      return str.split(":")[0];
+    }
+
     // 生成优选节点 (支持 VLESS 与 Trojan)
     function generate() {
       const rawText = document.getElementById("vlessInput").value.trim();
@@ -151,8 +173,8 @@
           const hostPort = parts[0];
           const name = parts[1] || nameBase;
           
-          // 仅保留域名/IP，强制忽略输入字符串中的端口部分
-          const host = hostPort.split(":")[0];
+          // 完美兼容 IPv4 / IPv6 / 域名的截取逻辑
+          const host = parseHostOnly(hostPort);
 
           result.push(`${protocol}${auth}@${host}:${port}${params}#${name}`);
         });
